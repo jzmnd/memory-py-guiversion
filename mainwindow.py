@@ -5,7 +5,7 @@ mainwindow.py
 Form implementation generated from reading ui file 'mainwindow.ui'
 Created by: PyQt4 UI code generator 4.11.4
 
-Created by Jeremy Smith
+Modified by Jeremy Smith
 University of California, Berkeley
 j-smith@eecs.berkeley.edu
 """

@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 MemTest.py
 UI file for MemTest with threading
@@ -14,7 +15,6 @@ import time
 import serial
 from PyQt4 import QtGui
 from PyQt4.QtCore import QThread, QObject, pyqtSignal, pyqtSlot
-import myfunctions as mf
 import numpy as np
 import mainwindow
 
