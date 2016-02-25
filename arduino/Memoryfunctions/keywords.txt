@@ -1,0 +1,35 @@
+#######################################
+# Syntax Coloring Map for Library "Memoryfunctions"
+#######################################
+
+#######################################
+# Datatypes & Classes (KEYWORD1)
+#######################################
+Memoryfunctions	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+precharge	KEYWORD2
+applypattern	KEYWORD2
+wordlineread	KEYWORD2
+forming	KEYWORD2
+stdread	KEYWORD2
+stdwriteZERO	KEYWORD2
+stdwriteONE	KEYWORD2
+lineread_slow	KEYWORD2
+gndall	KEYWORD2
+camread	KEYWORD2
+formarray	KEYWORD2
+writeZERO	KEYWORD2
+writeONE	KEYWORD2
+stdread_rewrite	KEYWORD2
+initPinMode	KEYWORD2
+initContentAddress	KEYWORD2
+initOneThirdTwoThirdONE	KEYWORD2
+initOneThirdTwoThirdZERO	KEYWORD2
+establishContact	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################

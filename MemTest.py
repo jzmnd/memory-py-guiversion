@@ -19,7 +19,7 @@ import numpy as np
 import mainwindow
 
 __author__ = "Jeremy Smith"
-__version__ = "1.0"
+__version__ = "1.1"
 
 # Define constants
 # Serial port address
@@ -319,6 +319,23 @@ class SaveFile(QThread):
         return
 
 
+class PlotResults(QThread):
+    """Thread class to plot results in results window"""
+    message = pyqtSignal(str)
+    errormesg = pyqtSignal(str)
+
+    def __init__(self, data):
+        QThread.__init__(self)
+        self.data = data
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        # To be implemented...
+        return
+
+
 class InitWriteRead(QThread):
     """Thread class for initializing variables for Write CAM read"""
     message = pyqtSignal(str)
@@ -399,6 +416,7 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
         super(MainApp, self).__init__(parent)
         self.setupUi(self)
 
+        # Initialize buttons
         self.pushButton_1.clicked.connect(self.init_WR)
         self.pushButton_2.clicked.connect(self.run_WR)
         self.pushButton_3.clicked.connect(self.init_WO)
@@ -413,6 +431,7 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
         self.pushButton_9.clicked.connect(self.continue_run)
         self.pushButton_10.clicked.connect(self.continue_run)
 
+        # Default values of input parameters
         self.wline = 0
         self.arraysize = 1
         self.pattern = '0'
@@ -421,11 +440,14 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
         self.gndPW = 100
         self.loop = 1
 
+        # Save counter
         self._count = 1
+        # Voltage-time data storage list
         self._fulldatabuffer = []
 
     @pyqtSlot(str)
     def writestr(self, text):
+        """Display message method/slot"""
         if len(text) == 1:
             self.textBrowser_1.insertPlainText(text)
             self.textBrowser_2.insertPlainText(text)
@@ -438,6 +460,7 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
 
     @pyqtSlot(str)
     def writestrRED(self, text):
+        """Display error message method/slot"""
         self.textBrowser_1.setTextColor(QtGui.QColor('red'))
         self.textBrowser_2.setTextColor(QtGui.QColor('red'))
         self.textBrowser_1.append(text)
@@ -450,20 +473,24 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
 
     @pyqtSlot()
     def changevoltagewait(self):
+        """Method/slot to enable continue button"""
         self.pushButton_9.setEnabled(True)
         self.pushButton_10.setEnabled(True)
         return
 
     @pyqtSlot(list, list)
     def storeresult(self, data, header):
+        """Method/slot to append new data to the data buffer"""
         self._fulldatabuffer.append(header)
         self._fulldatabuffer.append(np.array(data))
         return
 
     def init_WR(self):
+        """Method for initializing variables in the Write-Read program"""
         self.pushButton_1.setEnabled(False)
         self.pushButton_3.setEnabled(False)
 
+        # Read text boxes and menus
         self.wline = self.comboBox_1.currentIndex()
         self.arraysize = self.comboBox_2.currentIndex() + 1
         self.pattern = str(self.lineEdit_1.text())
@@ -472,11 +499,13 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
         self.gndPW = self.lineEdit_4.text()
         self.loop = self.lineEdit_5.text()
 
+        # Creates new InitWriteRead class and connects slots
         self.init_check = InitWriteRead(self.wline, self.arraysize, self.pattern, self.writePW, self.prePW, self.gndPW, self.loop)
         self.init_check.message.connect(self.writestr)
         self.init_check.errormesg.connect(self.writestrRED)
         self.init_check.finished.connect(self.done)
 
+        # Start initialization thread
         self.init_check.start()
 
         self.pushButton_7.clicked.connect(self.init_check.terminate)
@@ -486,20 +515,24 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
         return
 
     def init_WO(self):
+        """Method for initializing variables in the Write Only program"""
         self.pushButton_1.setEnabled(False)
         self.pushButton_3.setEnabled(False)
 
+        # Read text boxes and menus
         self.arraysize = self.comboBox_3.currentIndex() + 1
         self.pattern = str(self.lineEdit_11.text())
         self.writePW = self.lineEdit_6.text()
         self.gndPW = self.lineEdit_7.text()
         self.loop = self.lineEdit_8.text()
 
+        # Creates new InitWriteOnly class and connects slots
         self.init_check = InitWriteOnly(self.arraysize, self.pattern, self.writePW, self.gndPW, self.loop)
         self.init_check.message.connect(self.writestr)
         self.init_check.errormesg.connect(self.writestrRED)
         self.init_check.finished.connect(self.done)
 
+        # Start initialization thread
         self.init_check.start()
 
         self.pushButton_7.clicked.connect(self.init_check.terminate)
@@ -509,9 +542,11 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
         return
 
     def run_WR(self):
+        """Method for running the Write-Read program"""
         self.pushButton_2.setEnabled(False)
         self.pushButton_4.setEnabled(False)
 
+        # Creates new RunWriteRead class and connects slots
         self.runresult = RunWriteRead(self.wline, self.arraysize, self.pattern, self.writePW, self.prePW, self.gndPW, self.loop)
         self.runresult.message.connect(self.writestr)
         self.runresult.errormesg.connect(self.writestrRED)
@@ -519,6 +554,7 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
         self.runresult.finished.connect(self.done)
         self.runresult.result.connect(self.storeresult)
 
+        # Start run thread
         self.runresult.start()
 
         self.pushButton_7.clicked.connect(self.runresult.terminate)
@@ -528,15 +564,18 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
         return
 
     def run_WO(self):
+        """Method for running the Write Only program"""
         self.pushButton_2.setEnabled(False)
         self.pushButton_4.setEnabled(False)
 
+        # Creates new RunWriteOnly class and connects slots
         self.runresult = RunWriteOnly(self.arraysize, self.pattern, self.writePW, self.gndPW, self.loop)
         self.runresult.message.connect(self.writestr)
         self.runresult.errormesg.connect(self.writestrRED)
         self.runresult.changevoltage.connect(self.changevoltagewait)
         self.runresult.finished.connect(self.done)
 
+        # Start run thread
         self.runresult.start()
 
         self.pushButton_7.clicked.connect(self.runresult.terminate)
@@ -546,26 +585,37 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
         return
 
     def savedata(self):
+        """Method for saving data to file"""
         self.pushButton_5.setEnabled(False)
+        # Creates file name
         datafilename = "{:s}_{:s}.txt".format(self.lineEdit_9.text(), self.lineEdit_10.text())
 
+        # Creates new SaveFile class and connects slots
         self.save = SaveFile(self._fulldatabuffer, datafilename, save_path)
         self.save.message.connect(self.writestr)
         self.save.errormesg.connect(self.writestrRED)
         self.save.finished.connect(self.done)
 
+        # Start save thread
         self.save.start()
 
         self._count += 1
         self.lineEdit_10.setText(str(self._count))
         return
 
+    def plotdata(self):
+        """Method for plotting data"""
+        # To be implemented...
+        return
+
     def resetcnt(self):
+        """Reset the counter method"""
         self._count = 1
         self.lineEdit_10.setText("1")
         return
 
     def continue_run(self):
+        """Method to continue the program after setting a voltage"""
         global paused
         paused = False
         self.pushButton_9.setEnabled(False)
@@ -573,6 +623,7 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
         return
 
     def done(self):
+        """Done method to reset buttons"""
         self.writestr("Done.")
         self.pushButton_1.setEnabled(True)
         self.pushButton_3.setEnabled(True)
