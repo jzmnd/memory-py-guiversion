@@ -19,7 +19,7 @@ import numpy as np
 import mainwindow
 
 __author__ = "Jeremy Smith"
-__version__ = "1.1"
+__version__ = "1.2"
 
 # Define constants
 # Serial port address
@@ -30,6 +30,8 @@ maxpulsewidth = 250
 paused = False
 # Save path
 save_path = os.path.dirname(__file__)
+if save_path == '':
+    save_path = '.'
 
 
 class MemTest(QObject):
@@ -545,6 +547,7 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
         """Method for running the Write-Read program"""
         self.pushButton_2.setEnabled(False)
         self.pushButton_4.setEnabled(False)
+        self._fulldatabuffer = []
 
         # Creates new RunWriteRead class and connects slots
         self.runresult = RunWriteRead(self.wline, self.arraysize, self.pattern, self.writePW, self.prePW, self.gndPW, self.loop)
@@ -567,6 +570,7 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
         """Method for running the Write Only program"""
         self.pushButton_2.setEnabled(False)
         self.pushButton_4.setEnabled(False)
+        self._fulldatabuffer = []
 
         # Creates new RunWriteOnly class and connects slots
         self.runresult = RunWriteOnly(self.arraysize, self.pattern, self.writePW, self.gndPW, self.loop)
