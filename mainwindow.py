@@ -172,6 +172,66 @@ class Ui_MainWindow(object):
 
         self.tabWidget.addTab(self.tab_2, _fromUtf8(""))
         
+
+
+
+        self.tab_4 = QtGui.QWidget()
+        self.tab_4.setObjectName(_fromUtf8("tab_4"))
+
+        self.comboBox_4 = QtGui.QComboBox(self.tab_4)
+        self.comboBox_4.setGeometry(QtCore.QRect(130, 30, 104, 26))
+        self.comboBox_4.setObjectName(_fromUtf8("comboBox_4"))
+        self.comboBox_4.addItem(_fromUtf8(""))
+        self.comboBox_4.addItem(_fromUtf8(""))
+        self.comboBox_4.addItem(_fromUtf8(""))
+        self.comboBox_5 = QtGui.QComboBox(self.tab_4)
+        self.comboBox_5.setGeometry(QtCore.QRect(130, 60, 104, 26))
+        self.comboBox_5.setObjectName(_fromUtf8("comboBox_5"))
+        self.comboBox_5.addItem(_fromUtf8(""))
+        self.comboBox_5.addItem(_fromUtf8(""))
+        self.comboBox_5.addItem(_fromUtf8(""))
+
+        self.label_15 = QtGui.QLabel(self.tab_4)
+        self.label_15.setGeometry(QtCore.QRect(30, 30, 80, 16))
+        self.label_15.setObjectName(_fromUtf8("label_15"))
+        self.label_16 = QtGui.QLabel(self.tab_4)
+        self.label_16.setGeometry(QtCore.QRect(30, 60, 80, 16))
+        self.label_16.setObjectName(_fromUtf8("label_16"))
+        self.label_17 = QtGui.QLabel(self.tab_4)
+        self.label_17.setGeometry(QtCore.QRect(330, 30, 161, 16))
+        self.label_17.setObjectName(_fromUtf8("label_18"))
+        self.label_18 = QtGui.QLabel(self.tab_4)
+        self.label_18.setGeometry(QtCore.QRect(330, 60, 171, 16))
+        self.label_18.setObjectName(_fromUtf8("label_19"))
+
+        self.lineEdit_12 = QtGui.QLineEdit(self.tab_4)
+        self.lineEdit_12.setGeometry(QtCore.QRect(510, 30, 113, 21))
+        self.lineEdit_12.setObjectName(_fromUtf8("lineEdit_12"))
+        self.lineEdit_13 = QtGui.QLineEdit(self.tab_4)
+        self.lineEdit_13.setGeometry(QtCore.QRect(510, 60, 113, 21))
+        self.lineEdit_13.setObjectName(_fromUtf8("lineEdit_13"))
+
+        self.textBrowser_3 = QtGui.QTextBrowser(self.tab_4)
+        self.textBrowser_3.setGeometry(QtCore.QRect(10, 260, 700, 280))
+        self.textBrowser_3.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+        self.textBrowser_3.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.textBrowser_3.setObjectName(_fromUtf8("textBrowser_3"))
+
+        self.pushButton_11 = QtGui.QPushButton(self.tab_4)
+        self.pushButton_11.setGeometry(QtCore.QRect(30, 160, 161, 32))
+        self.pushButton_11.setObjectName(_fromUtf8("pushButton_11"))
+        self.pushButton_12 = QtGui.QPushButton(self.tab_4)
+        self.pushButton_12.setGeometry(QtCore.QRect(30, 200, 113, 32))
+        self.pushButton_12.setObjectName(_fromUtf8("pushButton_12"))
+        self.pushButton_13 = QtGui.QPushButton(self.tab_4)
+        self.pushButton_13.setGeometry(QtCore.QRect(150, 200, 113, 32))
+        self.pushButton_13.setObjectName(_fromUtf8("pushButton_13"))
+        self.pushButton_14 = QtGui.QPushButton(self.tab_4)
+        self.pushButton_14.setGeometry(QtCore.QRect(270, 200, 113, 32))
+        self.pushButton_14.setObjectName(_fromUtf8("pushButton_14"))
+
+        self.tabWidget.addTab(self.tab_4, _fromUtf8(""))
+
         self.tab_3 = QtGui.QWidget()
         self.tab_3.setObjectName(_fromUtf8("tab_3"))
 
@@ -199,9 +259,12 @@ class Ui_MainWindow(object):
         self.pushButton_5 = QtGui.QPushButton(self.tab_3)
         self.pushButton_5.setGeometry(QtCore.QRect(450, 160, 120, 32))
         self.pushButton_5.setObjectName(_fromUtf8("pushButton_5"))
+        self.pushButton_15 = QtGui.QPushButton(self.tab_3)
+        self.pushButton_15.setGeometry(QtCore.QRect(450, 200, 120, 32))
+        self.pushButton_15.setObjectName(_fromUtf8("pushButton_15"))
 
         self.tabWidget.addTab(self.tab_3, _fromUtf8(""))
-        
+
         MainWindow.setCentralWidget(self.centralWidget)
 
         self.retranslateUi(MainWindow)
@@ -220,6 +283,12 @@ class Ui_MainWindow(object):
         self.comboBox_3.setItemText(0, _translate("MainWindow", "1x1", None))
         self.comboBox_3.setItemText(1, _translate("MainWindow", "2x2", None))
         self.comboBox_3.setItemText(2, _translate("MainWindow", "3x3", None))
+        self.comboBox_4.setItemText(0, _translate("MainWindow", "0", None))
+        self.comboBox_4.setItemText(1, _translate("MainWindow", "1", None))
+        self.comboBox_4.setItemText(2, _translate("MainWindow", "2", None))
+        self.comboBox_5.setItemText(0, _translate("MainWindow", "1x1", None))
+        self.comboBox_5.setItemText(1, _translate("MainWindow", "2x2", None))
+        self.comboBox_5.setItemText(2, _translate("MainWindow", "3x3", None))
 
         self.lineEdit_1.setText(_translate("MainWindow", "0", None))
         self.lineEdit_2.setText(_translate("MainWindow", "100", None))
@@ -232,6 +301,8 @@ class Ui_MainWindow(object):
         self.lineEdit_9.setText(_translate("MainWindow", "datafile", None))
         self.lineEdit_10.setText(_translate("MainWindow", "1", None))
         self.lineEdit_11.setText(_translate("MainWindow", "0", None))
+        self.lineEdit_12.setText(_translate("MainWindow", "200", None))
+        self.lineEdit_13.setText(_translate("MainWindow", "100", None))
 
         self.label_1.setText(_translate("MainWindow", "Word line", None))
         self.label_2.setText(_translate("MainWindow", "Array size", None))
@@ -247,6 +318,11 @@ class Ui_MainWindow(object):
         self.label_12.setText(_translate("MainWindow", "Filename", None))
         self.label_13.setText(_translate("MainWindow", "Run #", None))
         self.label_14.setText(_translate("MainWindow", "Write pattern", None))
+        self.label_15.setText(_translate("MainWindow", "Word line", None))
+        self.label_16.setText(_translate("MainWindow", "Array size", None))
+        self.label_17.setText(_translate("MainWindow", "Precharge pulse width [ms]", None))
+        self.label_18.setText(_translate("MainWindow", "GND pulse width [ms]", None))
+
 
         self.pushButton_1.setText(_translate("MainWindow", "Initialize variables", None))
         self.pushButton_2.setText(_translate("MainWindow", "RUN", None))
@@ -258,8 +334,14 @@ class Ui_MainWindow(object):
         self.pushButton_8.setText(_translate("MainWindow", "Cancel", None))
         self.pushButton_9.setText(_translate("MainWindow", "Continue...", None))
         self.pushButton_10.setText(_translate("MainWindow", "Continue...", None))
+        self.pushButton_11.setText(_translate("MainWindow", "Initialize variables", None))
+        self.pushButton_12.setText(_translate("MainWindow", "RUN", None))
+        self.pushButton_13.setText(_translate("MainWindow", "Cancel", None))
+        self.pushButton_14.setText(_translate("MainWindow", "Continue...", None))
+        self.pushButton_15.setText(_translate("MainWindow", "Plot", None))
 
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_1), _translate("MainWindow", "Write-Read", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("MainWindow", "Write Only", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), _translate("MainWindow", "Read Only", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("MainWindow", "Results", None))
         

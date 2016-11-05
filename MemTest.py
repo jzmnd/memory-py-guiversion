@@ -19,7 +19,7 @@ import numpy as np
 import mainwindow
 
 __author__ = "Jeremy Smith"
-__version__ = "1.2"
+__version__ = "1.3"
 
 # Define constants
 # Serial port address
@@ -85,7 +85,7 @@ class MemTest(QObject):
         self.display()
         try:
             ser = serial.Serial(self._serialport, self._baud)   # Open the serial port that your Ardiono is connected to
-        except OSError:
+        except (OSError, serial.SerialException):
             self.errormesg.emit("\nPlease Connect Arduino via USB\n")
             time.sleep(1.0)
             return
@@ -289,6 +289,90 @@ class RunWriteOnly(QThread):
         return
 
 
+class RunReadOnly(QThread):
+    """Thread class for running Read Only functionality"""
+    # Signals for output messages to command window
+    message = pyqtSignal(str)
+    errormesg = pyqtSignal(str)
+    # Signal to activate next button when changing voltages manually
+    changevoltage = pyqtSignal()
+    # Signal to return data and data header
+    result = pyqtSignal(list, list)
+
+    def __init__(self, wline, arraysize, prePW, gndPW):
+        QThread.__init__(self)
+        self.wline = wline                      # Word line
+        self.arraysize = arraysize              # Memory array size (1,2,3)
+        self.prePW = int(prePW)                 # Precharge pulse width
+        self.gndPW = int(gndPW)                 # Ground pulse width
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        self.message.emit("Running...")
+        self.message.emit("\n================================")
+        self.message.emit("Memory Test Program")
+        self.message.emit(__author__)
+        self.message.emit("Version {:s}".format(__version__))
+        self.message.emit("Email: j-smith@eecs.berkeley.edu")
+        self.message.emit("================================\n")
+
+        # List of write objects
+        #writelist = []
+        # Use global paused variable to wait for user input
+        global paused
+
+        # Creates list of write objects for each CRS device
+        # for i, c in enumerate(self.pattern):
+        #     if c == '0':
+        #         write = MemTest(serialport, 'writezero', wordline=i//self.arraysize, bitline=i%self.arraysize, rtime=self.writePW, loop=self.loop, gtime=self.gndPW)
+        #         write.message.connect(self.message.emit)
+        #         write.errormesg.connect(self.errormesg.emit)
+        #         writelist.append(write)
+        #     elif c == '1':
+        #         write = MemTest(serialport, 'writeone', wordline=i//self.arraysize, bitline=i%self.arraysize, rtime=self.writePW, loop=self.loop, gtime=self.gndPW)
+        #         write.message.connect(self.message.emit)
+        #         write.errormesg.connect(self.errormesg.emit)
+        #         writelist.append(write)
+        #     else:
+        #         self.errormesg.emit("Write pattern error - use 0 or 1")
+
+        # Runs CAM reads
+        for a in range(2**self.arraysize):
+            applypattern = MemTest(serialport, 'camread', wordline=self.wline, pattern=a, ftime=self.prePW)
+            applypattern.message.connect(self.message.emit)
+            applypattern.errormesg.connect(self.errormesg.emit)
+
+            # self.message.emit("\nSet WRITE voltage. Press Continue...\n")
+            # self.changevoltage.emit()
+            # paused = True
+            # while paused:
+            #     self.sleep(1)
+
+            # for write in writelist:
+            #     write.runprogram()
+
+            self.message.emit("\nSet READ voltage. Press Continue...\n")
+            self.changevoltage.emit()
+            paused = True
+            while paused:
+                self.sleep(1)
+
+            applypattern.runprogram()
+            # Attempts to output data if it exists
+            try:
+                data, header = applypattern.output()
+                self.result.emit(data, header)
+            except TypeError:
+                self.errormesg.emit("No data to output")
+
+        self.message.emit("\n========================")
+        self.message.emit("MEMORY TEST COMPLETE")
+        self.message.emit("========================\n")
+        return
+
+
 class SaveFile(QThread):
     """Thread class for saving output to file"""
     message = pyqtSignal(str)
@@ -329,6 +413,7 @@ class PlotResults(QThread):
     def __init__(self, data):
         QThread.__init__(self)
         self.data = data
+        # Parse full data buffer to array...
 
     def __del__(self):
         self.wait()
@@ -413,6 +498,32 @@ class InitWriteOnly(QThread):
         return
 
 
+class InitReadOnly(QThread):
+    """Thread class for initializing variables for CAM Read Only"""
+    message = pyqtSignal(str)
+    errormesg = pyqtSignal(str)
+
+    def __init__(self, wline, arraysize, prePW, gndPW):
+        QThread.__init__(self)
+        self.wline = wline
+        self.arraysize = arraysize
+        self.prePW = int(prePW)
+        self.gndPW = int(gndPW)
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        if self.prePW > maxpulsewidth:
+            self.errormesg.emit("Precharge pulse must be less than {:d} ms".format(maxpulsewidth))
+            return
+        if self.gndPW > maxpulsewidth:
+            self.errormesg.emit("Ground pulse must be less than {:d} ms".format(maxpulsewidth))
+            return
+        self.message.emit("Variables set.")
+        return
+
+
 class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
     def __init__(self, parent=None):
         super(MainApp, self).__init__(parent)
@@ -423,15 +534,22 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
         self.pushButton_2.clicked.connect(self.run_WR)
         self.pushButton_3.clicked.connect(self.init_WO)
         self.pushButton_4.clicked.connect(self.run_WO)
+        self.pushButton_11.clicked.connect(self.init_RO)
+        self.pushButton_12.clicked.connect(self.run_RO)
+
         self.pushButton_5.clicked.connect(self.savedata)
-        self.pushButton_5.setEnabled(False)
         self.pushButton_6.clicked.connect(self.resetcnt)
+        self.pushButton_15.clicked.connect(self.plotdata)
+
         self.pushButton_7.setEnabled(False)
         self.pushButton_8.setEnabled(False)
+        self.pushButton_13.setEnabled(False)
         self.pushButton_9.setEnabled(False)
         self.pushButton_10.setEnabled(False)
+        self.pushButton_14.setEnabled(False)
         self.pushButton_9.clicked.connect(self.continue_run)
         self.pushButton_10.clicked.connect(self.continue_run)
+        self.pushButton_14.clicked.connect(self.continue_run)
 
         # Default values of input parameters
         self.wline = 0
@@ -453,11 +571,14 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
         if len(text) == 1:
             self.textBrowser_1.insertPlainText(text)
             self.textBrowser_2.insertPlainText(text)
+            self.textBrowser_3.insertPlainText(text)
         else:
             self.textBrowser_1.append(text)
             self.textBrowser_2.append(text)
+            self.textBrowser_3.append(text)
         self.textBrowser_1.verticalScrollBar().setValue(self.textBrowser_1.verticalScrollBar().maximum())
         self.textBrowser_2.verticalScrollBar().setValue(self.textBrowser_2.verticalScrollBar().maximum())
+        self.textBrowser_3.verticalScrollBar().setValue(self.textBrowser_3.verticalScrollBar().maximum())
         return
 
     @pyqtSlot(str)
@@ -465,12 +586,16 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
         """Display error message method/slot"""
         self.textBrowser_1.setTextColor(QtGui.QColor('red'))
         self.textBrowser_2.setTextColor(QtGui.QColor('red'))
+        self.textBrowser_3.setTextColor(QtGui.QColor('red'))
         self.textBrowser_1.append(text)
         self.textBrowser_2.append(text)
+        self.textBrowser_3.append(text)
         self.textBrowser_1.setTextColor(QtGui.QColor('black'))
         self.textBrowser_2.setTextColor(QtGui.QColor('black'))
+        self.textBrowser_3.setTextColor(QtGui.QColor('black'))
         self.textBrowser_1.verticalScrollBar().setValue(self.textBrowser_1.verticalScrollBar().maximum())
         self.textBrowser_2.verticalScrollBar().setValue(self.textBrowser_2.verticalScrollBar().maximum())
+        self.textBrowser_3.verticalScrollBar().setValue(self.textBrowser_3.verticalScrollBar().maximum())
         return
 
     @pyqtSlot()
@@ -478,6 +603,7 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
         """Method/slot to enable continue button"""
         self.pushButton_9.setEnabled(True)
         self.pushButton_10.setEnabled(True)
+        self.pushButton_14.setEnabled(True)
         return
 
     @pyqtSlot(list, list)
@@ -491,6 +617,7 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
         """Method for initializing variables in the Write-Read program"""
         self.pushButton_1.setEnabled(False)
         self.pushButton_3.setEnabled(False)
+        self.pushButton_11.setEnabled(False)
 
         # Read text boxes and menus
         self.wline = self.comboBox_1.currentIndex()
@@ -512,14 +639,17 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
 
         self.pushButton_7.clicked.connect(self.init_check.terminate)
         self.pushButton_8.clicked.connect(self.init_check.terminate)
+        self.pushButton_13.clicked.connect(self.init_check.terminate)
         self.pushButton_7.setEnabled(True)
         self.pushButton_8.setEnabled(True)
+        self.pushButton_13.setEnabled(True)
         return
 
     def init_WO(self):
         """Method for initializing variables in the Write Only program"""
         self.pushButton_1.setEnabled(False)
         self.pushButton_3.setEnabled(False)
+        self.pushButton_11.setEnabled(False)
 
         # Read text boxes and menus
         self.arraysize = self.comboBox_3.currentIndex() + 1
@@ -539,14 +669,46 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
 
         self.pushButton_7.clicked.connect(self.init_check.terminate)
         self.pushButton_8.clicked.connect(self.init_check.terminate)
+        self.pushButton_13.clicked.connect(self.init_check.terminate)
         self.pushButton_7.setEnabled(True)
         self.pushButton_8.setEnabled(True)
+        self.pushButton_13.setEnabled(True)
+        return
+
+    def init_RO(self):
+        """Method for initializing variables in the Read Only program"""
+        self.pushButton_1.setEnabled(False)
+        self.pushButton_3.setEnabled(False)
+        self.pushButton_11.setEnabled(False)
+
+        # Read text boxes and menus
+        self.wline = self.comboBox_4.currentIndex()
+        self.arraysize = self.comboBox_5.currentIndex() + 1
+        self.prePW = self.lineEdit_12.text()
+        self.gndPW = self.lineEdit_13.text()
+
+        # Creates new InitWriteRead class and connects slots
+        self.init_check = InitReadOnly(self.wline, self.arraysize, self.prePW, self.gndPW)
+        self.init_check.message.connect(self.writestr)
+        self.init_check.errormesg.connect(self.writestrRED)
+        self.init_check.finished.connect(self.done)
+
+        # Start initialization thread
+        self.init_check.start()
+
+        self.pushButton_7.clicked.connect(self.init_check.terminate)
+        self.pushButton_8.clicked.connect(self.init_check.terminate)
+        self.pushButton_13.clicked.connect(self.init_check.terminate)
+        self.pushButton_7.setEnabled(True)
+        self.pushButton_8.setEnabled(True)
+        self.pushButton_13.setEnabled(True)
         return
 
     def run_WR(self):
         """Method for running the Write-Read program"""
         self.pushButton_2.setEnabled(False)
         self.pushButton_4.setEnabled(False)
+        self.pushButton_12.setEnabled(False)
         self._fulldatabuffer = []
 
         # Creates new RunWriteRead class and connects slots
@@ -562,14 +724,17 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
 
         self.pushButton_7.clicked.connect(self.runresult.terminate)
         self.pushButton_8.clicked.connect(self.runresult.terminate)
+        self.pushButton_13.clicked.connect(self.runresult.terminate)
         self.pushButton_7.setEnabled(True)
         self.pushButton_8.setEnabled(True)
+        self.pushButton_13.setEnabled(True)
         return
 
     def run_WO(self):
         """Method for running the Write Only program"""
         self.pushButton_2.setEnabled(False)
         self.pushButton_4.setEnabled(False)
+        self.pushButton_12.setEnabled(False)
         self._fulldatabuffer = []
 
         # Creates new RunWriteOnly class and connects slots
@@ -584,9 +749,38 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
 
         self.pushButton_7.clicked.connect(self.runresult.terminate)
         self.pushButton_8.clicked.connect(self.runresult.terminate)
+        self.pushButton_13.clicked.connect(self.runresult.terminate)
         self.pushButton_7.setEnabled(True)
         self.pushButton_8.setEnabled(True)
+        self.pushButton_13.setEnabled(True)
         return
+
+    def run_RO(self):
+        """Method for running the Read ONly program"""
+        self.pushButton_2.setEnabled(False)
+        self.pushButton_4.setEnabled(False)
+        self.pushButton_12.setEnabled(False)
+        self._fulldatabuffer = []
+
+        # Creates new RunWriteRead class and connects slots
+        self.runresult = RunReadOnly(self.wline, self.arraysize, self.prePW, self.gndPW)
+        self.runresult.message.connect(self.writestr)
+        self.runresult.errormesg.connect(self.writestrRED)
+        self.runresult.changevoltage.connect(self.changevoltagewait)
+        self.runresult.finished.connect(self.done)
+        self.runresult.result.connect(self.storeresult)
+
+        # Start run thread
+        self.runresult.start()
+
+        self.pushButton_7.clicked.connect(self.runresult.terminate)
+        self.pushButton_8.clicked.connect(self.runresult.terminate)
+        self.pushButton_13.clicked.connect(self.runresult.terminate)
+        self.pushButton_7.setEnabled(True)
+        self.pushButton_8.setEnabled(True)
+        self.pushButton_13.setEnabled(True)
+        return
+
 
     def savedata(self):
         """Method for saving data to file"""
@@ -609,7 +803,16 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
 
     def plotdata(self):
         """Method for plotting data"""
-        # To be implemented...
+        self.pushButton_15.setEnabled(False)
+
+        # Creates new PlotResults class and connects slots
+        self.plot = PlotResults(self._fulldatabuffer)
+        self.plot.message.connect(self.writestr)
+        self.plot.errormesg.connect(self.writestrRED)
+        self.plot.finished.connect(self.done)
+
+        # Start save thread
+        self.plot.start()
         return
 
     def resetcnt(self):
@@ -624,6 +827,7 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
         paused = False
         self.pushButton_9.setEnabled(False)
         self.pushButton_10.setEnabled(False)
+        self.pushButton_14.setEnabled(False)
         return
 
     def done(self):
@@ -631,13 +835,22 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
         self.writestr("Done.")
         self.pushButton_1.setEnabled(True)
         self.pushButton_3.setEnabled(True)
+        self.pushButton_11.setEnabled(True)
+
         self.pushButton_2.setEnabled(True)
         self.pushButton_4.setEnabled(True)
+        self.pushButton_12.setEnabled(True)
+
         self.pushButton_5.setEnabled(True)
+        self.pushButton_15.setEnabled(True)
+
         self.pushButton_7.setEnabled(False)
         self.pushButton_8.setEnabled(False)
+        self.pushButton_13.setEnabled(False)
+
         self.pushButton_9.setEnabled(False)
         self.pushButton_10.setEnabled(False)
+        self.pushButton_14.setEnabled(False)
         return
 
 
