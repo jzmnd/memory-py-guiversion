@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 MemTest.py
-UI file for MemTest with threading
+UI for MemTest with threading
 
 Created by Jeremy Smith
 University of California, Berkeley
@@ -16,10 +16,12 @@ import serial
 from PyQt4 import QtGui
 from PyQt4.QtCore import QThread, QObject, pyqtSignal, pyqtSlot
 import numpy as np
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
 import mainwindow
 
 __author__ = "Jeremy Smith"
-__version__ = "1.3"
+__version__ = "1.4"
 
 # Define constants
 # Serial port address
@@ -84,7 +86,7 @@ class MemTest(QObject):
         """Connects to Arduino and runs program"""
         self.display()
         try:
-            ser = serial.Serial(self._serialport, self._baud)   # Open the serial port that your Ardiono is connected to
+            ser = serial.Serial(self._serialport, self._baud)   # Open the serial port that your Arduino is connected to
         except (OSError, serial.SerialException):
             self.errormesg.emit("\nPlease Connect Arduino via USB\n")
             time.sleep(1.0)
@@ -318,25 +320,8 @@ class RunReadOnly(QThread):
         self.message.emit("Email: j-smith@eecs.berkeley.edu")
         self.message.emit("================================\n")
 
-        # List of write objects
-        #writelist = []
         # Use global paused variable to wait for user input
         global paused
-
-        # Creates list of write objects for each CRS device
-        # for i, c in enumerate(self.pattern):
-        #     if c == '0':
-        #         write = MemTest(serialport, 'writezero', wordline=i//self.arraysize, bitline=i%self.arraysize, rtime=self.writePW, loop=self.loop, gtime=self.gndPW)
-        #         write.message.connect(self.message.emit)
-        #         write.errormesg.connect(self.errormesg.emit)
-        #         writelist.append(write)
-        #     elif c == '1':
-        #         write = MemTest(serialport, 'writeone', wordline=i//self.arraysize, bitline=i%self.arraysize, rtime=self.writePW, loop=self.loop, gtime=self.gndPW)
-        #         write.message.connect(self.message.emit)
-        #         write.errormesg.connect(self.errormesg.emit)
-        #         writelist.append(write)
-        #     else:
-        #         self.errormesg.emit("Write pattern error - use 0 or 1")
 
         # Runs CAM reads
         for a in range(2**self.arraysize):
@@ -344,16 +329,7 @@ class RunReadOnly(QThread):
             applypattern.message.connect(self.message.emit)
             applypattern.errormesg.connect(self.errormesg.emit)
 
-            # self.message.emit("\nSet WRITE voltage. Press Continue...\n")
-            # self.changevoltage.emit()
-            # paused = True
-            # while paused:
-            #     self.sleep(1)
-
-            # for write in writelist:
-            #     write.runprogram()
-
-            self.message.emit("\nSet READ voltage. Press Continue...\n")
+            self.message.emit("\nSet READ voltage and rewrite pattern. Press Continue...\n")
             self.changevoltage.emit()
             paused = True
             while paused:
@@ -410,16 +386,27 @@ class PlotResults(QThread):
     message = pyqtSignal(str)
     errormesg = pyqtSignal(str)
 
-    def __init__(self, data):
+    def __init__(self, runresult, plotcanvas):
         QThread.__init__(self)
-        self.data = data
-        # Parse full data buffer to array...
+        self.runresult = runresult
+        self.plotcanvas = plotcanvas
+        self.data = []
+        for block in self.runresult:
+            if len(block) == 7:
+                continue
+            else:
+                self.data.append(block)
+        self.data = np.array(self.data)
+        print self.data
 
     def __del__(self):
         self.wait()
 
     def run(self):
-        # To be implemented...
+        self.message.emit("Plotting...")
+        self.plotcanvas.clear_plot()
+        for block in self.data:
+            self.plotcanvas.display_plot(block.T[0], block.T[1])
         return
 
 
@@ -524,6 +511,27 @@ class InitReadOnly(QThread):
         return
 
 
+class MpltCanvas(FigureCanvas):
+    """FigureCanvasAgg for Matplotlib figure"""
+    def __init__(self, parent=None, width=4, height=4, dpi=100):
+        fig = Figure(figsize=(width, height), dpi=dpi)
+        FigureCanvas.__init__(self, fig)
+        self.axes = fig.add_subplot(111)
+        self.setParent(parent)
+
+        self.display_plot(0, 0)
+
+        FigureCanvas.setSizePolicy(self, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        FigureCanvas.updateGeometry(self)
+
+    def display_plot(self, x, y):
+        self.axes.plot(x, y)
+        self.draw()
+
+    def clear_plot(self):
+        self.axes.cla()
+
+
 class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
     def __init__(self, parent=None):
         super(MainApp, self).__init__(parent)
@@ -564,6 +572,10 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
         self._count = 1
         # Voltage-time data storage list
         self._fulldatabuffer = []
+
+        # Plot canvas setup
+        self.plotcanvas = MpltCanvas()
+        self.graphicsLayout.addWidget(self.plotcanvas)
 
     @pyqtSlot(str)
     def writestr(self, text):
@@ -781,7 +793,6 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
         self.pushButton_13.setEnabled(True)
         return
 
-
     def savedata(self):
         """Method for saving data to file"""
         self.pushButton_5.setEnabled(False)
@@ -806,7 +817,7 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
         self.pushButton_15.setEnabled(False)
 
         # Creates new PlotResults class and connects slots
-        self.plot = PlotResults(self._fulldatabuffer)
+        self.plot = PlotResults(self._fulldatabuffer, self.plotcanvas)
         self.plot.message.connect(self.writestr)
         self.plot.errormesg.connect(self.writestrRED)
         self.plot.finished.connect(self.done)
