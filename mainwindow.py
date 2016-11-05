@@ -26,6 +26,7 @@ except AttributeError:
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
 
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
@@ -36,7 +37,7 @@ class Ui_MainWindow(object):
         self.tabWidget = QtGui.QTabWidget(self.centralWidget)
         self.tabWidget.setGeometry(QtCore.QRect(10, 10, 730, 580))
         self.tabWidget.setObjectName(_fromUtf8("tabWidget"))
-        
+
         self.tab_1 = QtGui.QWidget()
         self.tab_1.setObjectName(_fromUtf8("tab_1"))
 
@@ -111,7 +112,7 @@ class Ui_MainWindow(object):
         self.pushButton_9.setObjectName(_fromUtf8("pushButton_9"))
 
         self.tabWidget.addTab(self.tab_1, _fromUtf8(""))
-        
+
         self.tab_2 = QtGui.QWidget()
         self.tab_2.setObjectName(_fromUtf8("tab_2"))
 
@@ -127,7 +128,7 @@ class Ui_MainWindow(object):
         self.label_14.setObjectName(_fromUtf8("label_14"))
         self.label_8 = QtGui.QLabel(self.tab_2)
         self.label_8.setGeometry(QtCore.QRect(30, 30, 80, 16))
-        self.label_8.setObjectName(_fromUtf8("label_8"))        
+        self.label_8.setObjectName(_fromUtf8("label_8"))
         self.label_9 = QtGui.QLabel(self.tab_2)
         self.label_9.setGeometry(QtCore.QRect(330, 30, 161, 16))
         self.label_9.setObjectName(_fromUtf8("label_9"))
@@ -140,7 +141,7 @@ class Ui_MainWindow(object):
 
         self.lineEdit_11 = QtGui.QLineEdit(self.tab_2)
         self.lineEdit_11.setGeometry(QtCore.QRect(130, 70, 120, 21))
-        self.lineEdit_11.setObjectName(_fromUtf8("lineEdit"))        
+        self.lineEdit_11.setObjectName(_fromUtf8("lineEdit"))
         self.lineEdit_6 = QtGui.QLineEdit(self.tab_2)
         self.lineEdit_6.setGeometry(QtCore.QRect(510, 30, 113, 21))
         self.lineEdit_6.setObjectName(_fromUtf8("lineEdit_6"))
@@ -232,9 +233,10 @@ class Ui_MainWindow(object):
         self.tab_3 = QtGui.QWidget()
         self.tab_3.setObjectName(_fromUtf8("tab_3"))
 
-        self.graphicsView = QtGui.QGraphicsView(self.tab_3)
+        self.graphicsView = QtGui.QWidget(self.tab_3)
         self.graphicsView.setGeometry(QtCore.QRect(30, 20, 400, 500))
         self.graphicsView.setObjectName(_fromUtf8("graphicsView"))
+        self.graphicsLayout = QtGui.QVBoxLayout(self.graphicsView)
 
         self.label_12 = QtGui.QLabel(self.tab_3)
         self.label_12.setGeometry(QtCore.QRect(450, 20, 59, 16))
@@ -340,4 +342,3 @@ class Ui_MainWindow(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("MainWindow", "Write Only", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), _translate("MainWindow", "Read Only", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("MainWindow", "Results", None))
-        
