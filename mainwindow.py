@@ -171,9 +171,6 @@ class Ui_MainWindow(object):
         self.pushButton_10.setObjectName(_fromUtf8("pushButton_10"))
 
         self.tabWidget.addTab(self.tab_2, _fromUtf8(""))
-        
-
-
 
         self.tab_4 = QtGui.QWidget()
         self.tab_4.setObjectName(_fromUtf8("tab_4"))
@@ -322,7 +319,6 @@ class Ui_MainWindow(object):
         self.label_16.setText(_translate("MainWindow", "Array size", None))
         self.label_17.setText(_translate("MainWindow", "Precharge pulse width [ms]", None))
         self.label_18.setText(_translate("MainWindow", "GND pulse width [ms]", None))
-
 
         self.pushButton_1.setText(_translate("MainWindow", "Initialize variables", None))
         self.pushButton_2.setText(_translate("MainWindow", "RUN", None))
