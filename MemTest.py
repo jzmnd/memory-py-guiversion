@@ -397,7 +397,6 @@ class PlotResults(QThread):
             else:
                 self.data.append(block)
         self.data = np.array(self.data)
-        print self.data
 
     def __del__(self):
         self.wait()
@@ -406,7 +405,9 @@ class PlotResults(QThread):
         self.message.emit("Plotting...")
         self.plotcanvas.clear_plot()
         for block in self.data:
-            self.plotcanvas.display_plot(block.T[0], block.T[1])
+            if len(block) == 0:
+                continue
+            self.plotcanvas.display_plot(block.T[0]/1000, block.T[1])
         return
 
 
