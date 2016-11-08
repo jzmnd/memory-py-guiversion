@@ -565,8 +565,8 @@ class MainApp(QtGui.QMainWindow, mainwindow.Ui_MainWindow):
         self.arraysize = 1
         self.pattern = '0'
         self.writePW = 100
-        self.prePW = 200
-        self.gndPW = 100
+        self.prePW = 5
+        self.gndPW = 200
         self.loop = 1
 
         # Save counter
