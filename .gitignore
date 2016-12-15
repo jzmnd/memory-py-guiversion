@@ -29,3 +29,7 @@ plots/
 
 # DS Store
 .DS_Store
+
+# Other
+MemTest/
+
